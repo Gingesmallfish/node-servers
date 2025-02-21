@@ -1,6 +1,6 @@
 // services/avatarService.js
 const path = require('path');
-const db = require('../db/db');  // 假设你有一个 models.js 用于操作数据库
+const db = require('../db/connection');  // 假设你有一个 models.js 用于操作数据库
 
 // 保存头像的服务
 const saveAvatar = (userId, file) => {

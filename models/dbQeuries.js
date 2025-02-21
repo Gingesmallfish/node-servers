@@ -1,5 +1,5 @@
 // dbQuery.js
-const pool = require('../db/db');
+const pool = require('../db/connection');
 
 // 查询用户名是否存在
 async function checkUsernameExistence(username) {

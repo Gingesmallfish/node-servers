@@ -4,8 +4,9 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const interfaces = require('./interface/interface'); // 引入接口文件
+const menusRouters = require('./router/menuRouters');  // 引入菜单数据
 // 引入数据库
-require('./db/db')
+require('./db/connection')
 
 const app = express();
 app.use(cors(
@@ -38,6 +39,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 // 挂载路由
 app.use('/api', interfaces);
+
+app.use('/menu', menusRouters)
 
 
 // 启动服务器
