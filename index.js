@@ -4,11 +4,15 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const interfaces = require('./interface/interface'); // 引入接口文件
-const menusRouters = require('./router/menuRouters');  // 引入菜单数据
+const inFormationRouter = require('./router/inFormaTionRoutes');
+
 // 引入数据库
 require('./db/connection')
 
 const app = express();
+
+
+// 跨域设置
 app.use(cors(
     {
         origin: 'http://localhost:8080',
@@ -39,9 +43,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 // 挂载路由
 app.use('/api', interfaces);
-
-app.use('/menu', menusRouters)
-
+// 头像，个人信息
+app.use('/avatar', inFormationRouter)
 
 // 启动服务器
 const port = 3000

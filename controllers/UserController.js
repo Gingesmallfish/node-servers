@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { getCaptcha } = require('../utils/captcha');
 const { checkUsernameExistence, insertUser, findUserByUsername } = require('../models/dbQeuries');
 
-const JWT_SECRET = 'token-admin';
+const JWT_SECRET = 'token-component';
 
 // 获取验证码
 exports.getCaptcha = (req, res) => {
@@ -149,6 +149,7 @@ exports.login = async (req, res) => {
 
 // 退出登录
 exports.logout = (req, res) => {
+    // 清除 cookie 和 session
     res.clearCookie('token');
     req.session.destroy((err) => {
         if (err) {
