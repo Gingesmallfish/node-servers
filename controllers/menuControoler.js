@@ -1,7 +1,8 @@
 const { getMenus } = require('../models/menu');
 const { buildTree } = require('../utils/treeBuilder');
 
-const getMenuTree = async (req, res) => {
+// 获取菜单树
+exports.getMenuTree = async (req, res) => {
     try {
         const allMenus = await getMenus();
         const menuTree = buildTree(allMenus);
@@ -10,8 +11,4 @@ const getMenuTree = async (req, res) => {
         console.error('获取菜单树失败:', error);
         res.status(500).json({ success: false, message: '获取菜单树失败' });
     }
-};
-
-module.exports = {
-    getMenuTree
 };
