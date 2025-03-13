@@ -1,4 +1,3 @@
-// services/avatarService.js
 const path = require('path');
 const db = require('../db/connection');  // 假设你有一个 models.js 用于操作数据库
 

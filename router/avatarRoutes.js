@@ -1,4 +1,3 @@
-// routes/avatarRoutes.js
 const express = require('express');
 const router = express.Router();
 const { upload, uploadAvatar, getUserAvatar } = require('../controllers/AvatarController');

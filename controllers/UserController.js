@@ -3,13 +3,18 @@ const jwt = require('jsonwebtoken');
 const { getCaptcha } = require('../utils/captcha');
 const { checkUsernameExistence, insertUser, findUserByUsername } = require('../models/dbQeuries');
 
+// 密钥
 const JWT_SECRET = 'token-component';
 
-// 获取验证码
+/**
+ *  获取验证码
+ * @param req
+ * @param res
+ */
 exports.getCaptcha = (req, res) => {
     try {
         const captcha = getCaptcha();
-        req.session.captcha = captcha.text;
+        req.session.captcha = captcha.text.toLowerCase(); // 存储为小写
         req.session.captchaTime = Date.now();
         res.type('svg');
         res.status(200).send(captcha.data);
@@ -19,7 +24,12 @@ exports.getCaptcha = (req, res) => {
     }
 };
 
-// 提取验证码验证逻辑
+/**
+ *  验证验证码
+ * @param req
+ * @param captcha
+ * @returns {{valid: boolean}|{valid: boolean, message: string}}
+ */
 function validateCaptcha(req, captcha) {
     if (!req.session.captcha || !req.session.captchaTime) {
         console.log('验证码或验证码时间缺失');
@@ -32,28 +42,30 @@ function validateCaptcha(req, captcha) {
         console.log('验证码已过期');
         return { valid: false, message: '验证码已过期' };
     }
-    if (req.session.captcha!== captcha) {
+    // 将验证码都进行转换小写进行比较
+    if (req.session.captcha.toLowerCase() !== captcha.toLowerCase()) {
         console.log('验证码不匹配');
-        return { valid: false, message: '验证码错误' };
+        return { valid: false, message: '验证码不匹配' };
     }
     return { valid: true };
 }
 
-
+/**
+ *  注册验证码
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 exports.register = async (req, res) => {
     const { username, password, confirmPassword, role, captcha, name, sex, phone } = req.body;
-    console.log('接收到的注册数据:', req.body);
-
     // 检查必填字段
     const requiredFields = ['username', 'password', 'confirmPassword', 'role', 'captcha', 'name', 'sex', 'phone'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
     if (missingFields.length > 0) {
-        console.log('缺少必填字段:', missingFields);
         return res.status(400).json({ message: `缺少必填字段: ${missingFields.join(', ')}` });
     }
 
     if (password !== confirmPassword) {
-        console.log('密码和确认密码不一致');
         return res.status(400).json({ message: '密码和确认密码不一致' });
     }
 
@@ -74,7 +86,6 @@ exports.register = async (req, res) => {
     // 验证手机号码格式
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(phone)) {
-        console.log('无效的手机号码');
         return res.status(400).json({ message: '请输入有效的手机号码' });
     }
 
@@ -82,14 +93,12 @@ exports.register = async (req, res) => {
         // 检查用户名是否已存在
         const results = await checkUsernameExistence(username);
         if (results.length > 0) {
-            console.log('用户名已存在');
             return res.status(400).json({ message: '用户名已存在' });
         }
 
         // 加密密码并保存用户
         const hashedPassword = await bcrypt.hash(password, 10);
         await insertUser(username, hashedPassword, parsedRole, name, sex, phone); // 确保字段顺序一致
-        console.log('用户注册成功');
         res.json({ message: '注册成功' });
     } catch (error) {
         console.error('注册出错:', error);
@@ -97,17 +106,19 @@ exports.register = async (req, res) => {
     }
 };
 
-
-// 用户登录
+/**
+ *  登录验证
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 exports.login = async (req, res) => {
     const { username, password, captcha } = req.body;
-    console.log('接收到的登录数据:', req.body);
 
     // 检查必填字段
     const requiredFields = ['username', 'password', 'captcha'];
-    const missingFields = requiredFields.filter(field =>!req.body[field]);
+    const missingFields = requiredFields.filter(field => !req.body[field]);
     if (missingFields.length > 0) {
-        console.log('缺少必填字段:', missingFields);
         return res.status(400).json({ message: `缺少必填字段: ${missingFields.join(', ')}` });
     }
 
@@ -121,7 +132,6 @@ exports.login = async (req, res) => {
         // 检查用户名是否存在
         const results = await findUserByUsername(username);
         if (results.length === 0) {
-            console.log('用户名或密码错误');
             return res.status(401).json({ message: '用户名或密码错误' });
         }
 
@@ -130,7 +140,6 @@ exports.login = async (req, res) => {
         // 验证密码
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log('用户名或密码错误');
             return res.status(401).json({ message: '用户名或密码错误' });
         }
 
@@ -139,15 +148,18 @@ exports.login = async (req, res) => {
             expiresIn: '1h',
         });
 
-        console.log('登录成功');
-        res.json({ message: '登录成功', token });
+        res.json({ message: '登录成功', token, user }); // 确保返回用户信息
     } catch (error) {
         console.error('登录出错:', error);
         res.status(500).json({ message: '服务器内部错误，请稍后重试' });
     }
 };
 
-// 退出登录
+/**
+ * 退出登录
+ * @param req
+ * @param res
+ */
 exports.logout = (req, res) => {
     // 清除 cookie 和 session
     res.clearCookie('token');
