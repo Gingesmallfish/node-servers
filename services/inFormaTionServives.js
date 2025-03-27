@@ -1,10 +1,14 @@
-const pool = require('../db/connection');
+const pool = require('../db/pool');
 
-// 获取用户信息 用户名，role，年龄，phone
+/**
+ * 获取用户信息 用户名，role，年龄，phone
+ * @param userId 用户id
+ * @returns {Promise<*|null>}
+ */
 async function getUserInfo(userId) {
     try {
         const query = `SELECT username, role, sex, phone, name, introduction
-                       FROM users WHERE user_id = ?`;
+                       FROM users WHERE id = ?`;
         const [rows] = await pool.execute(query, [userId]);
         if (rows.length === 0) {
             return null;

@@ -9,7 +9,6 @@ const getCaptcha = () => {
         width: 150, // 增大宽度
         height: 50,
         background: '#f0f0f0', // 设置背景颜色
-
     });
     return {
         text: captcha.text.toLowerCase(),  // 将验证码文本转为小写

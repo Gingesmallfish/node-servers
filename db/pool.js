@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 
+// 创建数据库连接池
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
@@ -9,8 +10,5 @@ const pool = mysql.createPool({
     waitForConnections: true,
     queueLimit: 0
 });
-
-// 添加调试信息
-console.log('数据库连接池对象:', pool);
 
 module.exports = pool;

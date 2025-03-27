@@ -1,7 +1,9 @@
-// dbQuery.js
-const pool = require('../db/connection');
-
-// 查询用户名是否存在
+const pool = require('../db/pool'); // 引入数据库连接池
+/**
+ *  查询用户名是否存在
+ * @param username 用户名
+ * @returns {Promise<*>} 异步返回查询结果
+ */
 async function checkUsernameExistence(username) {
     try {
         const [results] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
@@ -12,7 +14,17 @@ async function checkUsernameExistence(username) {
     }
 }
 
-// 插入新用户
+/**
+ * 插入用户
+ * @param username 用户名
+ * @param hashedPassword 密码
+ * @param role 角色 1学生 2教师,3 管理员
+ * @param name 姓名
+ * @param sex 性别
+ * @param phone 手机号
+ * @param introduction 个人简介
+ * @returns {Promise<*>} 异步返回查询结果
+ */
 async function insertUser(username, hashedPassword, role, name, sex, phone) {
     try {
         const [results] = await pool.execute(
@@ -26,7 +38,11 @@ async function insertUser(username, hashedPassword, role, name, sex, phone) {
     }
 }
 
-// 根据用户名查找用户
+/**
+ * 根据用户名查找用户
+ * @param username 用户名
+ * @returns {Promise<*>} 异步返回查询结果
+ */
 async function findUserByUsername(username) {
     try {
         const [results] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
@@ -36,6 +52,7 @@ async function findUserByUsername(username) {
         throw new Error('服务器内部错误');
     }
 }
+
 
 module.exports = {
     checkUsernameExistence,

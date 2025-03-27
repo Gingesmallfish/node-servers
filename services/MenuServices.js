@@ -1,4 +1,4 @@
-const pool = require('../db/connection');
+const pool = require('../db/pool');
 
 // 获取所有菜单数据，并按 sort_order 排序
 const getMenus = async () => {

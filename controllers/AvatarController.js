@@ -1,51 +1,31 @@
-// AvatarController.js
-const { saveAvatar, getAvatar } = require('../services/avatarService');
-const multer = require('multer');
-const path = require('path');
+const avatarService = require('../services/avatarService');
 
-// 设置 multer 存储配置
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/');  // 上传的文件存储在 uploads 文件夹中
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // 文件名加上时间戳，避免重复
+// 保存头像的控制器
+const saveAvatarController = async (req, res) => {
+  try {
+    console.log('req.user:', req.user); // 检查用户信息
+    console.log('req.file:', req.file); // 检查文件信息
+    const userId = req.user.id; // 从认证中间件获取用户ID
+    const file = req.file;
+    if (!file) {
+      return res.status(400).send('No file uploaded.');
+    }
+    const avatarUrl = await avatarService.saveAvatar(userId, file);
+    res.send({ message: '头像上传成功', avatarUrl });
+  } catch (error) {
+    res.status(500).send(error);
   }
-});
-
-const upload = multer({ storage: storage });
-
-// 上传头像接口
-const uploadAvatar = (req, res) => {
-  const userId = req.query.userId;  // 用户 ID 从查询参数中获取
-  if (!userId) {
-    return res.status(400).json({ message: '缺少用户 ID' });
-  }
-
-  if (!req.file) {
-    return res.status(400).json({ message: '没有文件上传' });
-  }
-
-  // 调用服务层保存头像
-  saveAvatar(userId, req.file)
-    .then((avatarUrl) => {
-      res.json({ avatarUrl });
-    })
-    .catch((err) => {
-      res.status(500).json({ message: err });
-    });
 };
 
-// 获取头像接口
-const getUserAvatar = (req, res) => {
-  const userId = req.query.userId || 1;  // 默认获取用户 ID 为 1
-  getAvatar(userId)
-    .then((avatarUrl) => {
-      res.json({ avatarUrl });
-    })
-    .catch((err) => {
-      res.status(500).json({ message: err });
-    });
+// 获取头像的控制器
+const getAvatarController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const avatarUrl = await avatarService.getAvatar(userId);
+    res.send({ avatarUrl });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 };
 
-module.exports = { upload, uploadAvatar, getUserAvatar };
+module.exports = { saveAvatarController, getAvatarController };
