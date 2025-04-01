@@ -11,7 +11,9 @@ module.exports = {
         saveUninitialized: true,
         cookie: {
             secure: false,
-            maxAge: 1000 * 60 * 10 // 10分钟
+            maxAge: 24 * 60 * 60 * 1000,  // 有效期为1天
+            httpOnly: true,
+            secure: false // 如果使用 HTTPS，设置为 true
         }
     }
 };

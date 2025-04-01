@@ -2,12 +2,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {getCaptcha} = require('../utils/captcha');
 const {checkUsernameExistence, insertUser, findUserByUsername} = require('../services/dbServices');
+const LogsServices = require('../services/LogsServices');
 
 // 密钥
 const JWT_SECRET = 'token-component';
 
 /**
- *  获取验证码
+ * 获取验证码
  * @param req
  * @param res
  */
@@ -19,20 +20,18 @@ exports.getCaptcha = (req, res) => {
         res.type('svg');
         res.status(200).send(captcha.data);
     } catch (error) {
-        console.error('生成验证码出错:', error);
-        res.status(500).json({message: '服务器内部错误，请稍后重试'});
+        res.status(500).json({message: '验证码错误，请稍后重试'});
     }
 };
 
 /**
- *  验证验证码
+ * 验证验证码
  * @param req
  * @param captcha
  * @returns {{valid: boolean}|{valid: boolean, message: string}}
  */
 function validateCaptcha(req, captcha) {
     if (!req.session.captcha || !req.session.captchaTime) {
-        console.log('验证码或验证码时间缺失');
         return {valid: false, message: '验证码已过期或无效'};
     }
     const captchaTime = req.session.captchaTime;
@@ -41,7 +40,7 @@ function validateCaptcha(req, captcha) {
     if (currentTime - captchaTime > tenMinutes) {
         return {valid: false, message: '验证码已过期'};
     }
-    // 将验证码都进行转换小写进行比较
+    // 将验证码大小写都可以登录
     if (req.session.captcha.toLowerCase() !== captcha.toLowerCase()) {
         return {valid: false, message: '验证码不匹配'};
     }
@@ -49,7 +48,7 @@ function validateCaptcha(req, captcha) {
 }
 
 /**
- *  注册验证码
+ * 注册验证码
  * @param req
  * @param res
  * @returns {Promise<*>}
@@ -104,7 +103,7 @@ exports.register = async (req, res) => {
 };
 
 /**
- *  登录验证
+ * 登录验证
  * @param req
  * @param res
  * @returns {Promise<*>}
@@ -145,21 +144,24 @@ exports.login = async (req, res) => {
             return res.status(400).json({message: '您已经登录，请勿重复登录'});
         }
 
+        // 记录用户登录
+        await LogsServices.logUserLogin(username);
+
         // 生成 JWT 令牌
         const token = jwt.sign({userId: user.id, username: user.username, role: user.role}, JWT_SECRET, {
-            expiresIn: '1h',
+            expiresIn: '24h',
         });
 
-        // 设置session
+        // 设置 session
         req.session.user = {
             id: user.id,
             username: user.username,
             role: user.role
         };
 
-
         res.json({message: '登录成功', token, user}); // 确保返回用户信息
     } catch (error) {
+        console.error('登录失败:', error);
         res.status(500).json({message: '登录失败'});
     }
 };

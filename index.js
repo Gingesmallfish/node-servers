@@ -4,6 +4,7 @@ const session = require('express-session');
 const path = require('path');
 const interfaces = require('./interface/interface'); // 引入接口文件
 const config = require('./config/config'); // 引入配置文件
+require('./models/cronJobs'); // 引入定时任务
 
 // 引入数据库
 require('./db/pool');
@@ -15,10 +16,12 @@ app.use(cors(config.cors));
 
 // 使用express内置中间件替代bodyParser
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 
 // session配置
 app.use(session(config.session));
+
+// 引入定时任务
 
 // 设置静态文件服务，以便可以访问上传的头像
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
